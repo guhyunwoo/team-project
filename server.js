@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const WebSocket = require("ws");
 const path = require("path"); // 추가
+const { Console } = require("console");
 
 const app = express();
 const port = 3000;
@@ -49,11 +50,24 @@ const wss = new WebSocket.Server({ port: 9000 });
 
 wss.on("connection", (ws) => {
   ws.on("message", (message) => {
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
+    console.log(message.toString("utf8"));
+
+    db.query(
+      "insert into Messages (Chatroom_Id, User_Id,  Message_Text) values ('',''))",
+      [username, password],
+      (err, results) => {
+        if (err) {
+          res.status(500).json({ error: "데이터베이스 오류" });
+          return;
+        }
+        if (results.length > 0) {
+          res.status(200).json({ message: "로그인 성공" });
+        } else {
+          res.status(401).json({ message: "잘못된 사용자명 또는 비밀번호" });
+        }
+      },
+      wss.clients.forEach((client) => {})
+    );
   });
 
   ws.on("close", () => {

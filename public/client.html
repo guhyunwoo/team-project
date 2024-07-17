@@ -22,59 +22,53 @@
     <button id="loginButton">로그인</button>
     <p id="message"></p>
 
-    <div id="chatArea">
-      <h2>채팅</h2>
-      <ul id="messages"></ul>
-      <input id="messageInput" placeholder="메시지를 입력하세요" />
-      <button id="sendMessageButton">전송</button>
-    </div>
+    <h2>채팅</h2>
+    <input id="messageInput" placeholder="메시지를 입력하세요" />
+    <button id="sendMessageButton">전송</button>
+    <div id="chatArea"></div>
+  </body>
+  <script>
+    let socket;
+    document.getElementById("loginButton").onclick = function () {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
 
-    <script>
-      let socket;
-
-      document.getElementById("loginButton").onclick = function () {
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-
-        fetch("http://localhost:3000/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username, password }),
+      fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById("message").textContent = data.message;
+          if (data.message === "로그인 성공") {
+            document.getElementById("chatArea").style.display = "block";
+            startChat();
+          }
         })
-          .then((response) => response.json())
-          .then((data) => {
-            document.getElementById("message").textContent = data.message;
-            if (data.message === "로그인 성공") {
-              document.getElementById("chatArea").style.display = "block";
-              startChat();
-            }
-          })
-          .catch((error) => {
-            console.error("로그인 오류:", error);
-          });
+        .catch((error) => {
+          console.error("로그인 오류:", error);
+        });
+    };
+
+    function startChat() {
+      socket = new WebSocket("ws://localhost:9000"); // 포트를 9000으로 변경
+
+      socket.onmessage = function (event) {
+        const li = document.createElement("li");
+        li.textContent = event.data;
       };
 
-      function startChat() {
-        socket = new WebSocket("ws://localhost:9000"); // 포트를 9000으로 변경
-
-        socket.onmessage = function (event) {
-          const li = document.createElement("li");
-          li.textContent = event.data;
-          document.getElementById("messages").appendChild(li);
-        };
-
-        document.getElementById("sendMessageButton").onclick = function () {
-          const messageInput = document.getElementById("messageInput");
-          socket.send(
-            `${document.getElementById("username").value}: ${
-              messageInput.value
-            }`
-          );
-          messageInput.value = "";
-        };
-      }
-    </script>
-  </body>
+      document.getElementById("sendMessageButton").onclick = function () {
+        const messageInput = document.getElementById("messageInput");
+        console.log(messageInput.value);
+        console.log(document.getElementById("username").value);
+        socket.send(
+          `${document.getElementById("username").value}: ${messageInput.value}`
+        );
+      };
+    }
+  </script>
 </html>
