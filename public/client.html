@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>로그인 및 채팅</title>
+    <style>
+      #chatArea {
+        display: none;
+      }
+      #messages {
+        list-style-type: none;
+      }
+      #messageInput {
+        width: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>로그인</h2>
+    <input id="username" placeholder="사용자명" />
+    <input type="password" id="password" placeholder="비밀번호" />
+    <button id="loginButton">로그인</button>
+    <p id="message"></p>
+
+    <div id="chatArea">
+      <h2>채팅</h2>
+      <ul id="messages"></ul>
+      <input id="messageInput" placeholder="메시지를 입력하세요" />
+      <button id="sendMessageButton">전송</button>
+    </div>
+
+    <script>
+      let socket;
+
+      document.getElementById("loginButton").onclick = function () {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        fetch("http://localhost:3000/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("message").textContent = data.message;
+            if (data.message === "로그인 성공") {
+              document.getElementById("chatArea").style.display = "block";
+              startChat();
+            }
+          })
+          .catch((error) => {
+            console.error("로그인 오류:", error);
+          });
+      };
+
+      function startChat() {
+        socket = new WebSocket("ws://localhost:9000"); // 포트를 9000으로 변경
+
+        socket.onmessage = function (event) {
+          const li = document.createElement("li");
+          li.textContent = event.data;
+          document.getElementById("messages").appendChild(li);
+        };
+
+        document.getElementById("sendMessageButton").onclick = function () {
+          const messageInput = document.getElementById("messageInput");
+          socket.send(
+            `${document.getElementById("username").value}: ${
+              messageInput.value
+            }`
+          );
+          messageInput.value = "";
+        };
+      }
+    </script>
+  </body>
+</html>
