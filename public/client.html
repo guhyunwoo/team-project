@@ -2,12 +2,13 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <title>로그인 및 채팅</title>
+    <title>채팅</title>
+    <link rel="stylesheet" href="style.css" />
     <style>
       #chatArea {
-        display: none;
+        display: block; /* 항상 표시 */
       }
-      #messages {
+      #message {
         list-style-type: none;
       }
       #messageInput {
@@ -16,59 +17,120 @@
     </style>
   </head>
   <body>
-    <h2>로그인</h2>
-    <input id="username" placeholder="사용자명" />
-    <input type="password" id="password" placeholder="비밀번호" />
-    <button id="loginButton">로그인</button>
-    <p id="message"></p>
+    <div id="wrapper">
+      <div id="phone-wrapper">
+        <img src="../images/StatusBar.svg" />
+        <div class="nav">
+          <a href="index.html">
+            <img src="../images/logo.svg" style="margin-left: 30px" />
+          </a>
+          <div class="contents">
+            <a href="client.html">채팅</a>
+            <a href="calendar.html">캘린더</a>
+            <a href="profile.html">프로필</a>
+          </div>
+        </div>
+        <div id="chatArea">
+          <div id="chat-wrap">
+            <ul id="message"></ul>
+          </div>
+        </div>
+        <div class="text-bar">
+          <button id="sendMessageButton">전송</button>
+          <input id="messageInput" placeholder="메시지를 입력하세요" />
+        </div>
+        <img src="../images/Keyboard.png" alt="" />
+      </div>
+    </div>
 
-    <h2>채팅</h2>
-    <input id="messageInput" placeholder="메시지를 입력하세요" />
-    <button id="sendMessageButton">전송</button>
-    <div id="chatArea"></div>
+    <script>
+      let socket;
+
+      // 채팅 시작
+      startChat();
+      // 저장된 메시지 로드
+      loadMessages();
+
+      function loadMessages() {
+        console.log("불려짐");
+        fetch("http://localhost:3000/messages")
+          .then((response) => response.json())
+          .then((data) => {
+            if (!Array.isArray(data)) {
+              console.error("응답 데이터가 배열이 아닙니다:", data);
+              return;
+            }
+
+            const messageList = document.getElementById("message");
+            if (!messageList) {
+              console.error("메시지 리스트를 찾을 수 없습니다.");
+              return;
+            }
+
+            data.forEach((msg) => {
+              const messageItem = document.createElement("div");
+              messageItem.classList.add("message-item");
+
+              const nickname = document.createElement("p");
+              nickname.textContent = `${msg.nickname}`;
+
+              const message = document.createElement("li");
+              message.textContent = `${msg.message_text}`;
+
+              messageItem.appendChild(nickname);
+              messageItem.appendChild(message);
+              messageList.appendChild(messageItem);
+            });
+          })
+          .catch((error) => {
+            console.error("메시지 로드 오류:", error);
+          });
+      }
+
+      function startChat() {
+        socket = new WebSocket("ws://localhost:9000");
+
+        socket.onmessage = function (event) {
+          const messageData = JSON.parse(event.data);
+          const messageItem = document.createElement("div");
+          messageItem.classList.add("message-item");
+
+          const img = document.createElement("img");
+          img.src = messageData.profile_image;
+
+          const messageContent = document.createElement("div");
+          messageContent.classList.add("message-content");
+
+          const nickname = document.createElement("div");
+          nickname.classList.add("nickname");
+          nickname.textContent = messageData.nickname;
+
+          const message = document.createElement("p");
+          message.textContent = messageData.message;
+
+          messageContent.appendChild(nickname);
+          messageContent.appendChild(message);
+
+          messageItem.appendChild(img);
+          messageItem.appendChild(messageContent);
+
+          document.getElementById("message").appendChild(messageItem);
+        };
+
+        document.getElementById("sendMessageButton").onclick = function () {
+          const messageInput = document.getElementById("messageInput");
+          const nickname = "레전드방송";
+          const profileImage =
+            "https://github.com/guhyunwoo/Meow/blob/master/images/%EC%BD%94%EC%BD%94.png?raw=true";
+          const messageData = {
+            nickname: nickname,
+            message: messageInput.value,
+            profile_image: profileImage,
+          };
+          socket.send(JSON.stringify(messageData));
+          messageInput.value = "";
+        };
+      }
+    </script>
   </body>
-  <script>
-    let socket;
-    document.getElementById("loginButton").onclick = function () {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-
-      fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          document.getElementById("message").textContent = data.message;
-          if (data.message === "로그인 성공") {
-            document.getElementById("chatArea").style.display = "block";
-            startChat();
-          }
-        })
-        .catch((error) => {
-          console.error("로그인 오류:", error);
-        });
-    };
-
-    function startChat() {
-      socket = new WebSocket("ws://localhost:9000"); // 포트를 9000으로 변경
-
-      socket.onmessage = function (event) {
-        const li = document.createElement("li");
-        li.textContent = event.data;
-      };
-
-      document.getElementById("sendMessageButton").onclick = function () {
-        const messageInput = document.getElementById("messageInput");
-        console.log(messageInput.value);
-        console.log(document.getElementById("username").value);
-        socket.send(
-          `${document.getElementById("username").value}: ${messageInput.value}`
-        );
-      };
-    }
-  </script>
 </html>
