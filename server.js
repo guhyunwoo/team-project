@@ -28,9 +28,10 @@ db.connect((err) => {
 
 // 메시지 조회 API
 app.get("/messages", (req, res) => {
-  const query = "SELECT * FROM chats ORDER BY timestamp DESC"; // timestamp를 기준으로 정렬
+  const query = "SELECT * FROM chats ORDER BY timestamp ASC"; // timestamp를 기준으로 정렬
   db.query(query, (err, results) => {
     if (err) {
+      console.log(err);
       return res.status(500).json({ error: "데이터베이스 오류" });
     }
     res.json(results); // 저장된 메시지를 JSON 형식으로 응답
@@ -51,8 +52,14 @@ wss.on("connection", (ws) => {
 
     // 데이터베이스 쿼리
     db.query(
-      "INSERT INTO chats (chatroom_id, message_text, user_id, nickname) VALUES (?, ?, ?, ?)",
-      [1, processeedMessage, 1, "레전드방송"],
+      "INSERT INTO chats (chatroom_id, message_text, user_id, nickname, profileimage) VALUES (?, ?, ?, ?, ?)",
+      [
+        1,
+        processeedMessage,
+        1,
+        "레전드방송",
+        "https://github.com/guhyunwoo/Meow/blob/master/images/%ED%82%A4%EB%A3%A8.png?raw=true",
+      ],
       (err, results) => {
         if (err) {
           console.error(err);

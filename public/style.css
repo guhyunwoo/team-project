@@ -16,6 +16,7 @@ body {
   flex-direction: column;
   align-items: center;
   max-width: 360px;
+  background-color: #ffffff;
 }
 
 .text-bar {
@@ -51,13 +52,29 @@ body {
   font-weight: bold;
 }
 
+#ct {
+  text-decoration: black;
+  text-decoration: underline;
+  text-underline-offset: 14px;
+  text-decoration-thickness: 3px;
+  color: #000;
+  font-weight: bold;
+}
+
+#cl,
+#pl {
+  opacity: 60%;
+  text-decoration: none;
+  color: #000;
+  font-weight: bold;
+}
+
 .message-item {
   display: flex;
   align-items: center;
   margin-top: 10px;
   padding: 10px;
   width: 90%;
-  background-color: #ffffff;
   border-radius: 16px;
 }
 
@@ -94,7 +111,6 @@ body {
 #message {
   list-style-type: none;
   width: 100%;
-  padding: 0;
 }
 
 #messageInput {
