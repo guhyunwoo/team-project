@@ -1,3 +1,8 @@
+html {
+  margin: 0;
+  padding: 0;
+}
+
 body {
   background-color: #f8f8f8;
 }
@@ -33,10 +38,11 @@ body {
 
 .nav {
   display: flex;
+  position: fixed;
   align-items: center;
   justify-content: space-between;
   background-color: #ffffff;
-  width: 100%;
+  width: 25%;
   height: 40px;
 }
 
