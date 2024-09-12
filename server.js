@@ -11,7 +11,6 @@ const port = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// 정적 파일 제공 설정
 app.use(express.static(path.join(__dirname, "public")));
 
 const db = mysql.createConnection({
